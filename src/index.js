@@ -1,7 +1,7 @@
 "use strict";
 const EventEmitter = require('events');
 
-let Rltm = require('rltm');
+let Rltm = require('../../rltm/src/index');
 let waterfall = require('async/waterfall');
 
 let plugins = []; 
@@ -53,39 +53,33 @@ class Chat {
         this.emitter = new EventEmitter();
 
         // initialize RLTM with pubnub keys
-        this.rltm = new Rltm({
+        this.rltm = new Rltm('pubnub', this.channel, {
             publishKey: 'pub-c-f7d7be90-895a-4b24-bf99-5977c22c66c9',
             subscribeKey: 'sub-c-bd013f24-9a24-11e6-a681-02ee2ddab7fe',
-            uuid: uuid
+            uuid: uuid,
+            state: {}
         });
-            
-        this.rltm.addListener({
-            status: (statusEvent) => {
-                
-                if (statusEvent.category === "PNConnectedCategory") {
-                    this.emitter.emit('ready');
-                }
 
-            },
-            message: (m) => {
+        this.rltm.subscribe((uuid, data) => {
 
-                let event = m.message[0];
-                let payload = m.message[1];
+            console.log('updated')
+            console.log(uuid, data)
 
-                payload.chat = this;
+            let event = data.message[0];
+            let payload = data.message[1];
 
-                if(payload.sender && globalChat.users[payload.sender]) {
-                    payload.sender = globalChat.users[payload.sender];
-                }
+            payload.chat = this;
 
-                this.broadcast(event, payload);
-
+            if(payload.sender && globalChat.users[payload.sender]) {
+                payload.sender = globalChat.users[payload.sender];
             }
+
+            this.broadcast(event, payload);
+
         });
 
-        this.rltm.subscribe({ 
-            channels: [this.channel],
-            withPresence: true
+        this.rltm.ready((data) => {
+            this.emitter.emit('ready');
         });
 
         loadClassPlugins(this);
@@ -201,58 +195,36 @@ class GlobalChat extends Chat {
 
         super(channel);
 
-        this.rltm.addListener({
-            presence: (presenceEvent) => {
+        this.rltm.join((uuid, state) => {
+            this.userJoin(uuid, state);
+        });
 
-                if(presenceEvent.action == "join") {
-                    this.userJoin(presenceEvent.uuid, presenceEvent.state, presenceEvent);
-                }
-                if(presenceEvent.action == "leave") {
-                    this.userLeave(presenceEvent.uuid);
-                }
-                if(presenceEvent.action == "timeout") {
-                    // set idle?
-                    // this.broadcast('timeout', payload);  
-                }
-                if(presenceEvent.action == "state-change") {
+        this.rltm.leave((uuid) => {
+            this.userLeave(uuid);
+        });
 
-                    if(this.users[presenceEvent.uuid]) {
-                        this.users[presenceEvent.uuid].update(presenceEvent.state);
-                    } else {
-                        this.userJoin(presenceEvent.uuid, presenceEvent.state, presenceEvent);
-                    }
-
-                }
-
+        this.rltm.state((uuid, state) => {
+            
+            if(this.users[uuid]) {
+                this.users[uuid].update(state);
+            } else {
+                this.userJoin(uuid, state);
             }
         });
 
         // get users online now
-        this.rltm.hereNow({
-            channels: [this.channel],
-            includeUUIDs: true,
-            includeState: true
-        }, (status, response) => {
+        this.rltm.hereNow((occupants) => {
 
-            if(!status.error) {
+            // for every occupant, create a model user
+            for(let i in occupants) {
 
-                // get the result of who's online
-                let occupants = response.channels[this.channel].occupants;
-
-                // for every occupant, create a model user
-                for(let i in occupants) {
-
-                    if(this.users[occupants[i].uuid]) {
-                        this.users[occupants[i].uuid].update(occupants[i].state);
-                        // this will broadcast every change individually
-                    } else {
-                        this.userJoin(occupants[i].uuid, occupants[i].state);
-                    }
-
+                if(this.users[occupants[i].uuid]) {
+                    this.users[occupants[i].uuid].update(occupants[i].state);
+                    // this will broadcast every change individually
+                } else {
+                    this.userJoin(occupants[i].uuid, occupants[i].state);
                 }
 
-            } else {
-                console.log(status, response);
             }
 
         });
@@ -260,13 +232,7 @@ class GlobalChat extends Chat {
 
     }
     setState(state) {
-
-        this.rltm.setState({
-            state: state,
-            channels: [this.channel]
-        }, (status, response) => {
-        });
-
+        this.rltm.setState(state);
     }
 }
 
@@ -277,41 +243,21 @@ class GroupChat extends Chat {
 
         super(channel);
 
-        this.rltm.addListener({
-            presence: (presenceEvent) => {
 
-                if(presenceEvent.action == "join") {
-                    this.userJoin(presenceEvent.uuid, presenceEvent.state, presenceEvent);
-                }
-                if(presenceEvent.action == "leave") {
-                    this.userLeave(presenceEvent.uuid);
-                }
-                if(presenceEvent.action == "timeout") {
-                    // this.broadcast('timeout', payload);  
-                }
+        this.rltm.join((uuid, state) => {
+            this.userJoin(uuid, state);
+        });
 
-            }
+        this.rltm.leave((uuid) => {
+            this.userLeave(uuid);
         });
 
         // get users online now
-        this.rltm.hereNow({
-            channels: [this.channel],
-            includeUUIDs: true,
-            includeState: true
-        }, (status, response) => {
+        this.rltm.hereNow((occupants) => {
 
-            if(!status.error) {
-
-                // get the result of who's online
-                let occupants = response.channels[this.channel].occupants;
-
-                // for every occupant, create a model user
-                for(let i in occupants) {
-                    this.userJoin(occupants[i].uuid, occupants[i].state);
-                }
-
-            } else {
-                console.log(status, response);
+            // for every occupant, create a model user
+            for(let uuid in occupants) {
+                this.userJoin(uuid, occupants[uuid]);
             }
 
         });

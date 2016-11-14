@@ -43,5 +43,4 @@ me.direct.emitter.on('private-invite', (payload) => {
 
     });
 
-
 });
