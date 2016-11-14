@@ -32,6 +32,6 @@
   },
   "dependencies": {
     "async": "^2.1.2",
-    "rltm": "0.0.4"
+    "rltm": "0.0.6"
   }
 }
