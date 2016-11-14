@@ -77,7 +77,6 @@ class Chat {
                 if(payload.sender && globalChat.users[payload.sender]) {
                     payload.sender = globalChat.users[payload.sender];
                 }
-                console.log('got message', payload)
 
                 this.broadcast(event, payload);
 
@@ -164,10 +163,8 @@ class Chat {
             }
 
         } else {
-            console.log('double userJoin called');
+            // console.log('double userJoin called');
         }
-
-        console.log(this.users)
 
     }
     userLeave(uuid) {
@@ -302,8 +299,6 @@ class GroupChat extends Chat {
             includeUUIDs: true,
             includeState: true
         }, (status, response) => {
-
-            console.log('here now', status, response)
 
             if(!status.error) {
 
