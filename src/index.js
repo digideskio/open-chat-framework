@@ -9,6 +9,7 @@ let plugins = [];
 let uuid = null;
 let me = false;
 let globalChat = false;
+let rltm;
 
 function addChild(ob, childName, childOb) {
    ob[childName] = childOb;
@@ -52,12 +53,11 @@ class Chat {
         // our events published over this event emitter
         this.emitter = new EventEmitter();
 
-        // initialize RLTM with pubnub keys
-        this.rltm = new Rltm('pubnub', this.channel, {
-            publishKey: 'pub-c-f7d7be90-895a-4b24-bf99-5977c22c66c9',
-            subscribeKey: 'sub-c-bd013f24-9a24-11e6-a681-02ee2ddab7fe',
-            uuid: uuid,
-            state: {}
+        this.rltm = rltm;   
+
+        this.rltm.ready((data) => {
+            console.log('ready  ')
+            this.emitter.emit('ready');
         });
 
         this.rltm.subscribe((uuid, data) => {
@@ -76,10 +76,6 @@ class Chat {
 
             this.broadcast(event, payload);
 
-        });
-
-        this.rltm.ready((data) => {
-            this.emitter.emit('ready');
         });
 
         loadClassPlugins(this);
@@ -345,6 +341,7 @@ module.exports = {
         this.config.globalChannel = this.config.globalChannel || 'ofc-global';
 
         plugins = plugs;
+        rltm = config.rltm;
 
         this.plugin = {};
 
