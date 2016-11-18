@@ -53,17 +53,13 @@ class Chat {
         // our events published over this event emitter
         this.emitter = new EventEmitter();
 
-        this.rltm = rltm;   
+        this.room = rltm.join(this.channel);
 
-        this.rltm.ready((data) => {
-            console.log('ready  ')
+        this.room.on('ready', (data) => {
             this.emitter.emit('ready');
         });
 
-        this.rltm.subscribe((uuid, data) => {
-
-            console.log('updated')
-            console.log(uuid, data)
+        this.room.on('message', (uuid, data) => {
 
             let event = data.message[0];
             let payload = data.message[1];
@@ -97,7 +93,7 @@ class Chat {
 
             delete payload.chat;
 
-            this.rltm.publish({
+            this.room.publish({
                 message: [event, payload],
                 channel: this.channel
             });
@@ -149,7 +145,7 @@ class Chat {
                 return this.users[uuid];
                    
             } else {
-                console.log('user does not exist, and no state given, ignoring');
+                // console.log('user does not exist, and no state given, ignoring');
             }
 
         } else {
@@ -191,15 +187,15 @@ class GlobalChat extends Chat {
 
         super(channel);
 
-        this.rltm.join((uuid, state) => {
+        this.room.on('join', (uuid, state) => {
             this.userJoin(uuid, state);
         });
 
-        this.rltm.leave((uuid) => {
+        this.room.on('leave', (uuid) => {
             this.userLeave(uuid);
         });
 
-        this.rltm.state((uuid, state) => {
+        this.room.on('state', (uuid, state) => {
             
             if(this.users[uuid]) {
                 this.users[uuid].update(state);
@@ -209,7 +205,7 @@ class GlobalChat extends Chat {
         });
 
         // get users online now
-        this.rltm.hereNow((occupants) => {
+        this.room.hereNow((occupants) => {
 
             // for every occupant, create a model user
             for(let i in occupants) {
@@ -228,7 +224,7 @@ class GlobalChat extends Chat {
 
     }
     setState(state) {
-        this.rltm.setState(state);
+        this.room.setState(state);
     }
 }
 
@@ -239,17 +235,16 @@ class GroupChat extends Chat {
 
         super(channel);
 
-
-        this.rltm.join((uuid, state) => {
+        this.room.on('join', (uuid, state) => {
             this.userJoin(uuid, state);
         });
 
-        this.rltm.leave((uuid) => {
+        this.room.on('leave', (uuid) => {
             this.userLeave(uuid);
         });
 
         // get users online now
-        this.rltm.hereNow((occupants) => {
+        this.room.hereNow((occupants) => {
 
             // for every occupant, create a model user
             for(let uuid in occupants) {

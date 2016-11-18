@@ -12,23 +12,19 @@ var OCF = require('./src/index.js');
 
 var agentInput = process.env.AGENT || 'pubnub';
 
-console.log(agentInput)
-
 var agents = {
-    pubnub: new Rltm('pubnub', new Date(), {
+    pubnub: new Rltm('pubnub', {
         publishKey: 'pub-c-191d5212-dd99-4f2e-a8cf-fb63775232bc',
         subscribeKey: 'sub-c-aa1d9fe8-a85b-11e6-a397-02ee2ddab7fe',
         uuid: new Date(),
         state: {}
     }),
-    socketio: new Rltm('socketio', 'test-channel', {
+    socketio: new Rltm('socketio', {
         endpoint: 'http://localhost:8000',
         uuid: new Date(),
         state: {}
     })    
 };
-
-var agent = agents[agentInput];
 
 describe('import', function() {
 
@@ -44,7 +40,7 @@ describe('conifg', function() {
 
         OCF.config({
             globalChannel: new Date(),
-            rltm: agent
+            rltm: agents[agentInput]
         }, [
             typingIndicator({
                 timeout: 2000
@@ -72,9 +68,10 @@ var chat;
 
 describe('chat', function() {
 
-    it('should be created', function() {
+    it('should be created', function(done) {
 
         chat = new OCF.GroupChat(new Date());
+        done();
 
     });
 
