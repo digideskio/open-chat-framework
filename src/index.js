@@ -149,7 +149,7 @@ class Chat {
             }
 
         } else {
-            // console.log('double userJoin called');
+            console.log('double userJoin called');
         }
 
     }
@@ -207,14 +207,16 @@ class GlobalChat extends Chat {
         // get users online now
         this.room.hereNow((occupants) => {
 
-            // for every occupant, create a model user
-            for(let i in occupants) {
+            console.log('here now called', occupants)
 
-                if(this.users[occupants[i].uuid]) {
-                    this.users[occupants[i].uuid].update(occupants[i].state);
+            // for every occupant, create a model user
+            for(let uuid in occupants) {
+
+                if(this.users[uuid]) {
+                    this.users[uuid].update(occupants[uuid]);
                     // this will broadcast every change individually
                 } else {
-                    this.userJoin(occupants[i].uuid, occupants[i].state);
+                    this.userJoin(uuid, occupants[uuid]);
                 }
 
             }
@@ -336,16 +338,17 @@ module.exports = {
         this.config.globalChannel = this.config.globalChannel || 'ofc-global';
 
         plugins = plugs;
-        rltm = config.rltm;
 
         this.plugin = {};
 
         return this;
 
     },
-    identify(id, state) {
+    identify(uuid, state) {
 
-        uuid = id;
+        this.config.rltm[1].uuid = uuid;
+
+        rltm = new Rltm(this.config.rltm[0], this.config.rltm[1]);
 
         globalChat = new GlobalChat(this.config.globalChannel);
 
