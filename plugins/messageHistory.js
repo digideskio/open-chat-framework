@@ -14,7 +14,7 @@ let messageHistory = (config) => {
     let subscribe = {
         message: function(payload, next) {
             
-            payload.chat.history.shift(payload);
+            // payload.chat.history.shift(payload);
             next(null, payload);
 
         }

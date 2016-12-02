@@ -54,6 +54,8 @@ class Chat extends EventEmitter {
 
         this.room = OCF.rltm.join(this.channel);
 
+        console.log(this.room)
+
         this.room.on('ready', (data) => {
             this.emit('ready');
         });

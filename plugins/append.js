@@ -1,7 +1,5 @@
 "use strict";
 
-const defaults = {timeout: 1000};
-
 module.exports = (config) => {
 
     config = config || {};
