@@ -4,7 +4,7 @@ const defaults = {timeout: 1000};
 
 let messageHistory = (config) => {
 
-    let extender = {
+    let extension = {
         shift: function(data) {
             this.parent.history.messages.unshift(data);
         },
@@ -13,19 +13,21 @@ let messageHistory = (config) => {
 
     let subscribe = {
         message: function(payload, next) {
-
+            
             payload.chat.history.shift(payload);
             next(null, payload);
 
         }
-    };
+    }
 
     return {
         namespace: 'history',
-        middleware: {subscribe},
         extends: {
-            Chat: extender,
-            GroupChat: extender
+            Chat: extension,
+            GroupChat: extension
+        },
+        middleware: {
+            subscribe: subscribe
         }
     }
 

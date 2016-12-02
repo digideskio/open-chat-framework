@@ -87,11 +87,11 @@
         // OCF Configure
         OCF.config({
             rltm: ['pubnub', {
-            publishKey: 'pub-c-191d5212-dd99-4f2e-a8cf-fb63775232bc',
-            subscribeKey: 'sub-c-aa1d9fe8-a85b-11e6-a397-02ee2ddab7fe',
-            uuid: new Date(),
-            state: {}
-        }],
+                publishKey: 'pub-c-191d5212-dd99-4f2e-a8cf-fb63775232bc',
+                subscribeKey: 'sub-c-aa1d9fe8-a85b-11e6-a397-02ee2ddab7fe',
+                uuid: new Date(),
+                state: {}
+            }],
             globalChannel: 'ofc-tester-13' // global chan or root, namespace? organization
         }, [
             OCF.plugin.typingIndicator({
@@ -128,7 +128,9 @@
 
         $onlineUser.find('a').click(() => {
 
-            let newChat = new OCF.GroupChat();
+            let chan = [user.data.uuid, me.data.uuid].sort().join(':');
+
+            let newChat = new OCF.GroupChat(chan);
             renderChat(newChat);
             user.direct.send('private-invite', {channel: newChat.channel});
 

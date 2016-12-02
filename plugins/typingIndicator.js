@@ -6,7 +6,7 @@ let plugin = (config) => {
 
     let stopTypingTimeout = null;
     
-    let extender = {
+    let extension = {
         startTyping: function() {
 
             this.parent.send('startTyping');
@@ -23,7 +23,6 @@ let plugin = (config) => {
             this.parent.send('stopTyping');   
 
         }
-
     }
 
     let publish = {
@@ -35,12 +34,12 @@ let plugin = (config) => {
 
     return {
         namespace: 'typing',
+        extends: {
+            Chat: extension,
+            GroupChat: extension
+        },
         middleware: {
             publish
-        },
-        extends: {
-            Chat: extender,
-            GroupChat: extender
         }
     }
 

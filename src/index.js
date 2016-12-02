@@ -8,8 +8,16 @@ let waterfall = require('async/waterfall');
 const loadClassPlugins = (obj) => {
 
     const addChild = (ob, childName, childOb) => {
-       ob[childName] = childOb;
-       childOb.parent = ob;
+
+        if(!ob[childName]) {
+            ob[childName] = childOb;   
+        } else {
+            console.error('plugin is trying to add duplicate method to class');
+        }
+
+        childOb.parent = ob;
+        childOb.OCF = OCF;
+        
     }
 
     let className = obj.constructor.name;
@@ -111,7 +119,7 @@ class Chat extends EventEmitter {
             // if the user does not exist at all and we get enough information to build the user
             if(!OCF.globalChat.users[uuid] && state && state._initialized) {
                 if(uuid == OCF.me.data.uuid) {
-                    OCF.globalChat.users[uuid] = me;
+                    OCF.globalChat.users[uuid] = OCF.me;
                 } else {
                     OCF.globalChat.users[uuid] = new User(uuid, state);
                 }
@@ -336,9 +344,7 @@ let OCF = {
     config(config, plugs) {
 
         this.config = config || {};
-
         this.config.globalChannel = this.config.globalChannel || 'ofc-global';
-
         this.plugins = plugs;
 
         return this;
@@ -348,9 +354,7 @@ let OCF = {
     identify(uuid, state) {
 
         this.config.rltm[1].uuid = uuid;
-
         this.rltm = new Rltm(this.config.rltm[0], this.config.rltm[1]);
-
         this.globalChat = new GlobalChat(this.config.globalChannel);
         this.me = new Me(uuid, state);
 

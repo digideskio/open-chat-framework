@@ -29,7 +29,10 @@ module.exports = (config) => {
     };
 
     return {
-        middleware: {publish, subscribe}
+        middleware: {
+            publish: publish, 
+            subscribe: subscribe
+        }
     }
 
 }

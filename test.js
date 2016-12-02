@@ -3,6 +3,8 @@ const assert = require('chai').assert;
 
 const typingIndicator = require('./plugins/typingIndicator.js');
 const append = require('./plugins/append.js');
+const remoteHistory = require('./plugins/remoteHistory.js');
+const messageHistory = require('./plugins/messageHistory.js');
 
 const Rltm = require('../rltm/src/index');
 
@@ -51,7 +53,9 @@ describe('conifg', function() {
             append({
                 publish: pub_append,
                 subscribe: sub_append
-            })
+            }),
+            remoteHistory(),
+            messageHistory()
         ]);
 
         assert.isOk(OCF);
