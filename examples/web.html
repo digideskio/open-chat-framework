@@ -185,6 +185,8 @@
 
         });
 
+        let lastSender = null
+
         let renderMessage = (payload) => {
             
             let classes = '';
@@ -193,15 +195,16 @@
                 classes = 'text-xs-right'
             }
 
-            let history = payload.chat.history.messages;
-
-            if(history.length > 1 && history[0].sender.data.uuid == history[1].sender.data.uuid) {
+            if(lastSender == payload.sender.data.uuid) {
                 classes += ' hide-username';
             }
+            lastSender = payload.sender.data.uuid;
 
             $privateChat.find('.log').append($('<div class="'+classes+'"><p class="text-muted username">' + payload.sender.data.state.username + '</p><p>' + payload.data.text + '</p></div>'));
 
         }
+
+        privateChat.on('history:message', renderMessage);
 
         privateChat.on('message', renderMessage);
 

@@ -55,7 +55,9 @@ class Chat extends EventEmitter {
         this.room = OCF.rltm.join(this.channel);
 
         this.room.on('message', (uuid, data) => {
+
             this.broadcast(data.message[0], data.message[1]);
+
         });
 
         loadClassPlugins(this);
@@ -103,7 +105,9 @@ class Chat extends EventEmitter {
         this.runPluginQueue('subscribe', event, (next) => {
             next(null, payload);
         }, (err, payload) => {
+
            this.emit(event, payload);
+
         });
 
     }
