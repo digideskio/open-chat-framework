@@ -1,33 +1,42 @@
 "use strict";
 
+const util = require('util');
+
+
 const defaults = {timeout: 1000};
 
 let messageHistory = (config) => {
 
-    let extension = {
-        shift: function(data) {
-            this.parent.history.messages.unshift(data);
-        },
-        messages: []
-    }
+    // let log = [];
 
-    let subscribe = {
-        message: function(payload, next) {
-            
-            // payload.chat.history.shift(payload);
-            next(null, payload);
+    let extension = {
+        construct: function(data) {
+
+            this.log = [];
+
+            this.parent.room.history((response) => {
+
+                console.log('calling history on', this.parent.room.channel, response);
+
+                for(let i in response) {
+
+                    this.log.push(response[i]);
+                    console.log('emitting historymessage', response[i])
+
+                    this.parent.emit('historymessage', response[i]);
+
+                }
+
+            });
 
         }
-    }
+    };
 
     return {
         namespace: 'history',
         extends: {
             Chat: extension,
             GroupChat: extension
-        },
-        middleware: {
-            subscribe: subscribe
         }
     }
 

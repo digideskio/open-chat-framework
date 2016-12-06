@@ -3,7 +3,6 @@ const assert = require('chai').assert;
 
 const typingIndicator = require('./plugins/typingIndicator.js');
 const append = require('./plugins/append.js');
-const remoteHistory = require('./plugins/remoteHistory.js');
 const messageHistory = require('./plugins/messageHistory.js');
 
 const Rltm = require('../rltm/src/index');
@@ -54,7 +53,6 @@ describe('conifg', function() {
                 publish: pub_append,
                 subscribe: sub_append
             }),
-            remoteHistory(),
             messageHistory()
         ]);
 
@@ -117,27 +115,30 @@ let pluginchat;
 
 describe('plugins', function() {
 
-    it('should be created', function(done) {
+    it('should be created', function() {
 
-        pluginchat = new OCF.GroupChat(new Date() + 'pluginchat');
-        done();
+        pluginchat = new OCF.GroupChat('pluginchat' + new Date().getTime());
 
     });
 
     it('publish and subscribe hooks should be called', function(done) {
 
-        pluginchat.on('message', (payload) => {
+        pluginchat.on('ready', () => {
 
-            assert.isObject(payload);
-            assert.isAbove(payload.data.text.indexOf(pub_append), 0, 'publish hook executed');
-            assert.isAbove(payload.data.text.indexOf(sub_append), 0, 'subscribe hook executed');
-            assert.isAbove(payload.data.text.indexOf(sub_append), payload.data.text.indexOf(pub_append), 'subscribe hook was called before publish hook');
-            done();
+            pluginchat.on('message', (payload) => {
 
-        });
+                assert.isObject(payload);
+                assert.isAbove(payload.data.text.indexOf(pub_append), 0, 'publish hook executed');
+                assert.isAbove(payload.data.text.indexOf(sub_append), 0, 'subscribe hook executed');
+                assert.isAbove(payload.data.text.indexOf(sub_append), payload.data.text.indexOf(pub_append), 'subscribe hook was called before publish hook');
+                done();
 
-        pluginchat.send('message', {
-            text: 'hello world'
+            });
+
+            pluginchat.send('message', {
+                text: 'hello world'
+            });
+
         });
 
     });
@@ -149,6 +150,53 @@ describe('plugins', function() {
         });
 
         pluginchat.typing.startTyping();
+
+    });
+
+});
+
+let historychat;
+
+describe('history plugin', function() {
+
+    it('should be created', function(done) {
+
+        historychat = new OCF.GroupChat('history-chat-test-2');
+        
+        historychat.on("historymessage", (message) => {
+
+            console.log('history:message', message);
+
+        });
+
+    });
+
+    it('history', function(done) {
+
+        historychat.on('ready', function() {
+
+            console.log('historychat ready')
+
+            historychat.send('message', {
+                text: 'hello world'
+            });
+
+            historychat.send('message', {
+                text: 'hello world'
+            });
+
+            historychat.send('message', {
+                text: 'hello world'
+            });
+
+            console.log(historychat.channel);
+            console.log('history return', historychat.history.log);
+
+            done();
+
+        })
+
+        done();
 
     });
 

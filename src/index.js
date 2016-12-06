@@ -5,6 +5,8 @@ const EventEmitter = require('events');
 let Rltm = require('../../rltm/src/index');
 let waterfall = require('async/waterfall');
 
+
+
 const loadClassPlugins = (obj) => {
 
     const addChild = (ob, childName, childOb) => {
@@ -53,8 +55,6 @@ class Chat extends EventEmitter {
         this.users = {};
 
         this.room = OCF.rltm.join(this.channel);
-
-        console.log(this.room)
 
         this.room.on('ready', (data) => {
             this.emit('ready');
