@@ -7,8 +7,12 @@ let plugin = (config) => {
     let stopTypingTimeout = null;
     
     let extension = {
+        construct: function() {
+            this.isTyping = false;
+        },
         startTyping: function() {
 
+            this.isTyping = true;
             this.parent.send('startTyping');
 
             clearTimeout(stopTypingTimeout);
@@ -19,8 +23,10 @@ let plugin = (config) => {
         },
         stopTyping: function() {
 
-            clearTimeout(stopTypingTimeout);
-            this.parent.send('stopTyping');   
+            if(this.isTyping) {
+                clearTimeout(stopTypingTimeout);
+                this.parent.send('stopTyping');      
+            }
 
         }
     }

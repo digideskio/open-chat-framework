@@ -5,8 +5,6 @@ const EventEmitter = require('events');
 let Rltm = require('../../rltm/src/index');
 let waterfall = require('async/waterfall');
 
-
-
 const loadClassPlugins = (obj) => {
 
     const addChild = (ob, childName, childOb) => {
@@ -25,8 +23,8 @@ const loadClassPlugins = (obj) => {
     let className = obj.constructor.name;
 
     for(let i in OCF.plugins) {
-        // do plugin error checking here
 
+        // do plugin error checking here
         if(OCF.plugins[i].extends && OCF.plugins[i].extends[className]) {
             
             // add properties from plugin object to class under plugin namespace
@@ -56,27 +54,16 @@ class Chat extends EventEmitter {
 
         this.room = OCF.rltm.join(this.channel);
 
-        this.room.on('ready', (data) => {
-            this.emit('ready');
-        });
-
         this.room.on('message', (uuid, data) => {
-
-            let event = data.message[0];
-            let payload = data.message[1];
-
-            payload.chat = this;
-
-            if(payload.sender && OCF.globalChat.users[payload.sender]) {
-                payload.sender = OCF.globalChat.users[payload.sender];
-            }
-
-            this.broadcast(event, payload);
-
+            this.broadcast(data.message[0], data.message[1]);
         });
 
         loadClassPlugins(this);
 
+    }
+
+    ready(fn) {
+        this.room.ready(fn);
     }
 
     send(event, data) {
@@ -104,6 +91,14 @@ class Chat extends EventEmitter {
     }
 
     broadcast(event, payload) {
+
+        if(!payload.chat) {
+            payload.chat = this;   
+        }
+
+        if(payload.sender && OCF.globalChat.users[payload.sender]) {
+            payload.sender = OCF.globalChat.users[payload.sender];
+        }
 
         this.runPluginQueue('subscribe', event, (next) => {
             next(null, payload);
@@ -138,7 +133,6 @@ class Chat extends EventEmitter {
                 // broadcast that this is a new user
                 this.broadcast('join', {
                     user: this.users[uuid],
-                    chat: this,
                     data: data
                 });
 
@@ -149,7 +143,7 @@ class Chat extends EventEmitter {
             }
 
         } else {
-            console.log('double userJoin called');
+            // console.log('double userJoin called');
         }
 
     }

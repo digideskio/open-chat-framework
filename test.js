@@ -86,7 +86,7 @@ describe('chat', function() {
 
     it('should get ready callback', function(done) {
         
-        chat.on('ready', () => {
+        chat.ready(() => {
 
             done();
 
@@ -116,14 +116,12 @@ let pluginchat;
 describe('plugins', function() {
 
     it('should be created', function() {
-
         pluginchat = new OCF.GroupChat('pluginchat' + new Date().getTime());
-
     });
 
     it('publish and subscribe hooks should be called', function(done) {
 
-        pluginchat.on('ready', () => {
+        pluginchat.ready(() => {
 
             pluginchat.on('message', (payload) => {
 
@@ -155,46 +153,51 @@ describe('plugins', function() {
 
 });
 
-let historychat;
+let historyChan = 'history-chat-4';
 
 describe('history plugin', function() {
 
     it('should be created', function(done) {
 
-        historychat = new OCF.GroupChat('history-chat-test-2');
-        
-        historychat.on("historymessage", (message) => {
+        this.timeout(10000);
 
-            console.log('history:message', message);
+        let historychat = new OCF.GroupChat(historyChan);
 
-        });
+        historychat.ready(() => {
+
+            historychat.send('message', {
+                text: 'hello world'
+            });
+
+            historychat.send('message', {
+                text: 'hello world'
+            });
+
+            historychat.send('message', {
+                text: 'hello world'
+            });
+
+            done();
+
+        })
 
     });
 
     it('history', function(done) {
 
-        historychat.on('ready', function() {
+        let historychat2 = new OCF.GroupChat(historyChan);
 
-            console.log('historychat ready')
+        let responded = false;
 
-            historychat.send('message', {
-                text: 'hello world'
-            });
+        historychat2.on("history:message", (message) => {
 
-            historychat.send('message', {
-                text: 'hello world'
-            });
+            if(!responded) {
+                done();
+            }
 
-            historychat.send('message', {
-                text: 'hello world'
-            });
+            responded = true;
 
-            console.log(historychat.channel);
-            console.log('history return', historychat.history.log);
-
-            done();
-
-        })
+        });
 
     });
 

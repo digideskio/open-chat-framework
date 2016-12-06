@@ -1,8 +1,5 @@
 "use strict";
 
-const util = require('util');
-
-
 const defaults = {timeout: 1000};
 
 let messageHistory = (config) => {
@@ -16,14 +13,13 @@ let messageHistory = (config) => {
 
             this.parent.room.history((response) => {
 
-                console.log('calling history on', this.parent.room.channel, response);
-
                 for(let i in response) {
 
-                    this.log.push(response[i]);
-                    console.log('emitting historymessage', response[i])
+                    this.log.push(response[i].data.message);
 
-                    this.parent.emit('historymessage', response[i]);
+                    this.parent.emit(
+                        ['history', response[i].data.message[0]].join(':'), 
+                        response[i].data.message[1]);
 
                 }
 
