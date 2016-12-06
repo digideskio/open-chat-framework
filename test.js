@@ -196,8 +196,6 @@ describe('history plugin', function() {
 
         })
 
-        done();
-
     });
 
 });
